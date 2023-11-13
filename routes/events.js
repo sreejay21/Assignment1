@@ -59,17 +59,30 @@ router.get("/between-dates", function (req, res, next) {
   })
 });
 
-router.put("/update", function (req, res, next) {
-  const idQuery=req.query.id;
-  const titleUpdate=req.query.title;
-  eventModel.findByIdAndUpdate(idQuery,{title:titleUpdate})
-  .then((response)=>{
-      res.send({status:200,Events:response})
-  })
-  .catch((err)=>{
-      console.log(err)
-  })
+router.put("/update/:id", function (req, res, next) {
+  const idQuery = req.params.id;
+
+  const eventUpdateData = {
+    title: req.body.title,
+    details: req.body.details,
+    on: req.body.on,
+    venue: req.body.venue,
+    registrationLink: req.body.registrationLink,
+  };
+
+  eventModel.findOneAndUpdate({ _id: idQuery }, eventUpdateData, { new: true })
+    .then(updatedEvent => {
+      if (!updatedEvent) {
+        return res.status(404).send({ status: 404, message: 'Event not found' });
+      }
+      res.send({ status: 200, events: updatedEvent });
+    })
+    .catch(err => {
+      console.error("Error updating event:", err);
+      res.status(500).send({ status: 500, message: 'Internal Server Error' });
+    });
 });
+
 
 router.delete("/delete", function (req, res, next) {
   const idQuery=req.query.id;
